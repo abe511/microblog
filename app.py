@@ -40,10 +40,6 @@ def create_app(test_config=None):
     def hello():
         return "Hello, World!"
 
-    @app.teardown_request
-    def close_session(db):
-        db.session.close()
-
     return app
 
 
