@@ -28,6 +28,8 @@ class User(db.Model):
     new_comments = db.Column(db.String(128))
 
 
+
+
 class Posts(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255))

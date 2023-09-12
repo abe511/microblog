@@ -1,8 +1,15 @@
 import os
 
 from flask import Flask
+from flask_wtf import FlaskForm
+from wtforms import StringField
 
 from src import auth, blog, db
+from src.models.models import User, Posts, session_db
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -39,6 +46,31 @@ def create_app(test_config=None):
     @app.route("/hello")
     def hello():
         return "Hello, World!"
+
+    app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+
+
+    admin = Admin(app, name='microblog', template_mode='bootstrap3')
+
+    from flask_wtf import FlaskForm
+    from wtforms import SelectField, DateField
+    from wtforms.validators import DataRequired
+
+    class PostForm(FlaskForm):
+
+        title = StringField('Title', validators=[DataRequired()])
+        body = StringField('Body', validators=[DataRequired()])
+        user_id = SelectField('User', choices=[1,2,3], validators=[DataRequired()])
+        created = DateField('Created', validators=[DataRequired()])
+
+    class PostAdminView(ModelView):
+        column_list = ['id', 'title', 'body', 'user_id', 'created']
+        form = PostForm  # Use the custom form class
+
+
+    admin.add_view(PostAdminView(Posts, db.session))
+    admin.add_view(ModelView(User, db.session))
+
 
     return app
 
