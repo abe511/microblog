@@ -7,3 +7,5 @@
 2. Run flask migration (flask db upgrade)
 3. Run app.py
 4. In case using shell. Use flask shell command
+
+*test*
