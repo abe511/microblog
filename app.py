@@ -27,8 +27,10 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
     app.config["SECRET_KEY"] = "your_secret_key_here"
 
-    bootstrap = Bootstrap5(app)
+    app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "slate"
 
+    bootstrap = Bootstrap5(app)
+    
     db.init_app(app)
 
     app.config["IPYTHON_CONFIG"] = {
