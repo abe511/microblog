@@ -22,7 +22,7 @@ users_groups_association_table = db.Table("users_groups_association_table", db.M
     db.Column("group_id", db.Integer, db.ForeignKey("group.id"))
 )
 
-users_favorites_association_table = db.Table("users_favorites_association_table", db.Model.metadata,
+favorites_likes_association_table = db.Table("favorites_likes_association_table", db.Model.metadata,
     db.Column("user_id", db.Integer, db.ForeignKey("user.id")),
     db.Column("post_id", db.Integer, db.ForeignKey("post.id"))
 )
@@ -35,7 +35,7 @@ class User(db.Model):
     role = db.Column(db.String(24))
     posts = db.relationship("Post", backref="user", lazy=True)
     groups = db.relationship("Group", secondary=users_groups_association_table, back_populates="users")
-    favorites = db.relationship("Post", secondary=users_favorites_association_table, back_populates="users")
+    favorites = db.relationship("Post", secondary=favorites_likes_association_table, back_populates="likes")
     comments = db.Column(db.String(128))
     new_comments = db.Column(db.String(128))
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -64,7 +64,7 @@ class Post(db.Model):
     body = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     group_id = db.Column(db.Integer, db.ForeignKey("group.id"), nullable=False)
-    likes = db.relationship("User", secondary=users_favorites_association_table, back_populates="post")
+    likes = db.relationship("User", secondary=favorites_likes_association_table, back_populates="favorites")
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
