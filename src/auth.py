@@ -12,7 +12,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from src.models.models import session_db, User, Posts
+from src.models.models import session_db, User, Post, Group
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 

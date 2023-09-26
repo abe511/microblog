@@ -7,6 +7,6 @@ migrate = Migrate()
 
 
 def init_app(app):
-    from src.models.models import User, Posts
+    from src.models.models import User, Post, Group
     db.init_app(app)
     migrate.init_app(app, db)

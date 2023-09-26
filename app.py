@@ -5,7 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField
 
 from src import auth, blog, db
-from src.models.models import User, Posts, session_db
+from src.models.models import User, Post, Group, session_db
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
@@ -74,7 +74,7 @@ def create_app(test_config=None):
         form = PostForm  # Use the custom form class
 
 
-    admin.add_view(PostAdminView(Posts, db.session))
+    admin.add_view(PostAdminView(Post, db.session))
     admin.add_view(ModelView(User, db.session))
 
 

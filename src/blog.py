@@ -10,7 +10,7 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from src.models.models import session_db, Posts, User
+from src.models.models import session_db, Post, User, Group
 from src.auth import login_required
 
 
@@ -23,9 +23,9 @@ def index():
     print("user_id ALL", user_id)
 
     with session_db() as s:
-        query = s.query(Posts)
-        query = query.join(User, User.id == Posts.user_id)
-        query = query.filter(Posts.user_id == user_id)
+        query = s.query(Post)
+        query = query.join(User, User.id == Post.user_id)
+        query = query.filter(Post.user_id == user_id)
         posts = query.all()
         return render_template("blog/index.html", posts=posts)
 
@@ -40,7 +40,7 @@ def create():
         print("user_id from BLOG", user_id)
 
         with session_db() as s:
-            new_post = Posts(title=title, body=body, user_id=user_id)
+            new_post = Post(title=title, body=body, user_id=user_id)
             s.add(new_post)
             s.commit()
 
@@ -50,9 +50,9 @@ def create():
 
 def get_post(id, check_author=True):
     with session_db() as s:
-        query = s.query(Posts)
-        query = query.join(User, User.id == Posts.user_id)
-        post = query.filter(Posts.id == id).first()
+        query = s.query(Post)
+        query = query.join(User, User.id == Post.user_id)
+        post = query.filter(Post.id == id).first()
 
         if post is None:
             abort(404, f"Post id {id} doesn't exist.")
@@ -80,7 +80,7 @@ def update(id):
             flash(error)
         else:
             with session_db() as s:
-                post = s.query(Posts).get(id)
+                post = s.query(Post).get(id)
                 post.body = body
                 post.title = title
                 s.commit()
@@ -94,6 +94,6 @@ def update(id):
 def delete(id):
     get_post(id)
     with session_db() as s:
-        s.query(Posts).filter(Posts.id == id).delete()
+        s.query(Post).filter(Post.id == id).delete()
         s.commit()
     return redirect(url_for("blog.index"))
