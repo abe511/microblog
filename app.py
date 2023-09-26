@@ -9,6 +9,7 @@ from src.models.models import User, Posts, session_db
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
+from flask_bootstrap import Bootstrap5
 
 
 def create_app(test_config=None):
@@ -21,9 +22,12 @@ def create_app(test_config=None):
     )
     app.config[
         "SQLALCHEMY_DATABASE_URI"
-    ] = "postgresql://postgres:password@localhost:5434/flask_db"
+    # ] = "postgresql://postgres:password@localhost:5434/flask_db"
+    ] = "postgresql://postgres:postgres@localhost:5433/flask_db"
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
     app.config["SECRET_KEY"] = "your_secret_key_here"
+
+    bootstrap = Bootstrap5(app)
 
     db.init_app(app)
 

@@ -1,4 +1,7 @@
 <!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {{ bootstrap.load_css() }}
+</meta>
 <title>{% block title %}{% endblock %} - Flaskr</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
@@ -22,3 +25,4 @@
   {% endfor %}
   {% block content %}{% endblock %}
 </section>
+{{ bootstrap.load_js() }}
