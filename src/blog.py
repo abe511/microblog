@@ -10,9 +10,10 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from src.models.models import session_db, Post, User, Group
+from src.models.models import session_db, Post, User, Group, users_groups_association_table
 from src.auth import login_required
 
+from sqlalchemy.orm.collections import InstrumentedList
 
 bp = Blueprint("blog", __name__)
 
@@ -20,14 +21,35 @@ bp = Blueprint("blog", __name__)
 @bp.route("/")
 def index():
     user_id = session.get("user")
-    print("user_id ALL", user_id)
+    if user_id is None:
+        with session_db() as s:
+            posts = s.query(Post).order_by(Post.created.desc()).all()
+    else:
+        with session_db() as s:
+            user = s.query(User).get(user_id)
+            users_groups = []
+            for group in user.groups:
+                users_groups.extend(group.users)
+            
+            user_ids = []
+            for user in users_groups:
+                user_ids.append(user.id)
 
-    with session_db() as s:
-        query = s.query(Post)
-        query = query.join(User, User.id == Post.user_id)
-        query = query.filter(Post.user_id == user_id)
-        posts = query.all()
-        return render_template("blog/index.html", posts=posts)
+            query = s.query(Post).join(Post.user).filter(User.id.in_(user_ids))
+            posts = query.order_by(Post.created.desc()).all()
+    return render_template("blog/index.html", posts=posts)
+
+
+# def index():
+#     user_id = session.get("user")
+#     print("user_id ALL", user_id)
+
+#     with session_db() as s:
+#         query = s.query(Post)
+#         query = query.join(User, User.id == Post.user_id)
+#         query = query.filter(Post.user_id == user_id)
+#         posts = query.all()
+#         return render_template("blog/index.html", posts=posts)
 
 
 @bp.route("/create", methods=("GET", "POST"))
