@@ -32,7 +32,8 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
     app.config["SECRET_KEY"] = "your_secret_key_here"
 
-    app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "slate"
+    app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "flatly"
+    # app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "slate"
     app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
 
     app.register_blueprint(auth.bp)
@@ -145,7 +146,7 @@ def create_app(test_config=None):
         # can_create = False
         page_size = 20
         column_list = ['id', 'name', 'users', 'read', 'write', 'created']
-        form_columns = ['name', 'users']
+        form_columns = ['name', 'users', 'read', 'write']
         # form = GroupForm
 
 

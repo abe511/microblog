@@ -19,25 +19,36 @@ bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @bp.route("/register", methods=("GET", "POST"))
 def register():
+    with session_db() as s:
+        groups = s.query(Group).all()
     if request.method == "POST":
         username = request.form["username"]
+        email = request.form["email"]
         password = request.form["password"]
+        selected_groups = request.form.getlist("groups")
 
         with session_db() as s:
-            exist_user = (
+            user_exists = (
                 s.query(User)
-                .filter(User.name == username, User.password == password)
+                # .filter(User.name == username or User.email == email, User.password == password)
+                .filter(User.name == username or User.email == email)
                 .first()
             )
-            if exist_user:
-                session["user"] = exist_user.id
-
+            if user_exists:
+                session["user"] = user_exists.id
+                flash("This user is already registered!", "warning")
                 return redirect(url_for("auth.login"))
             else:
-                new_user = User(name=username, password=password)
+                new_user = User(name=username, email=email, password=password)
+                for group_id in selected_groups:
+                    new_group = s.query(Group).get(group_id)
+                    if new_group:
+                        new_user.groups.append(new_group)
                 s.add(new_user)
                 s.commit()
-    return render_template("auth/register.html")
+                flash("User registered successfully!", "success")
+                return redirect(url_for("auth.login"))
+    return render_template("auth/register.html", groups=groups)
 
 
 @bp.route("/login", methods=("GET", "POST"))
@@ -47,14 +58,14 @@ def login():
         password = request.form["password"]
 
         with session_db() as s:
-            exist_user = (
+            user_exists = (
                 s.query(User)
                 .filter(User.name == username, User.password == password)
                 .first()
             )
-            session["user"] = exist_user.id
+            session["user"] = user_exists.id
 
-            if not exist_user:
+            if not user_exists:
                 return redirect(url_for("auth.register"))
 
         return redirect(url_for("blog.index"))

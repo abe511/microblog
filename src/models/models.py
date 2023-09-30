@@ -57,7 +57,7 @@ class Post(db.Model):
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):
-        return self.title
+        return str(self.id)
     
     def like(self, user):
         users = self.likes
@@ -121,7 +121,8 @@ class Group(db.Model):
     # # updated = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def __str__(self):
-            return self.name
+        return self.name
+
 
     # def list_groups(self):
     #     ...
