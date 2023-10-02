@@ -7,19 +7,21 @@ from flask import (
     request,
     url_for,
     session,
+    jsonify,
 )
 from werkzeug.exceptions import abort
 
 from src.models.models import session_db, Post, User, Group, users_groups_association_table
 from src.auth import login_required
 
-from sqlalchemy.orm.collections import InstrumentedList
 
 bp = Blueprint("blog", __name__)
 
 
 @bp.route("/")
+@bp.route("/favorites/", endpoint="favorites")
 def index():
+    favorites = []
     user_id = session.get("user")
     if user_id is None:
         with session_db() as s:
@@ -27,29 +29,20 @@ def index():
     else:
         with session_db() as s:
             user = s.query(User).get(user_id)
-            users_groups = []
+            other_group_users = []
             for group in user.groups:
-                users_groups.extend(group.users)
+                other_group_users.extend(group.users)
             
             user_ids = []
-            for user in users_groups:
-                user_ids.append(user.id)
+            for group_user in other_group_users:
+                user_ids.append(group_user.id)
 
             query = s.query(Post).join(Post.user).filter(User.id.in_(user_ids))
             posts = query.order_by(Post.created.desc()).all()
-    return render_template("blog/index.html", posts=posts)
-
-
-# def index():
-#     user_id = session.get("user")
-#     print("user_id ALL", user_id)
-
-#     with session_db() as s:
-#         query = s.query(Post)
-#         query = query.join(User, User.id == Post.user_id)
-#         query = query.filter(Post.user_id == user_id)
-#         posts = query.all()
-#         return render_template("blog/index.html", posts=posts)
+            favorites = user.favorites
+    if request.path == "/favorites/":
+        return render_template("blog/index.html", posts=favorites, favorites=favorites)
+    return render_template("blog/index.html", posts=posts, favorites=favorites)
 
 
 @bp.route("/create", methods=("GET", "POST"))
@@ -119,3 +112,23 @@ def delete(id):
         s.query(Post).filter(Post.id == id).delete()
         s.commit()
     return redirect(url_for("blog.index"))
+
+
+@bp.route("/like_post/<int:post_id>", methods=["POST"])
+def like_post(post_id):
+    user_id = session.get("user")
+
+    with session_db() as s:
+        user = s.query(User).get(user_id)
+        post = s.query(Post).get(post_id)
+        
+        if post:
+            if user in post.likes:
+                post.likes.remove(user)
+                s.commit()
+                return jsonify({"message": "Unliked"})
+            else:
+                post.likes.append(user)
+                s.commit()
+                return jsonify({"message": "Liked"})
+        return jsonify({"message": "Error"})

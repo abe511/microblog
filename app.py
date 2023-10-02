@@ -82,6 +82,7 @@ def create_app(test_config=None):
         # form_base_class = SecureForm
         can_create = False
         can_delete = False
+        page_size = 20
         # column_list = ['id', 'name', 'email', 'password', 'admin', 'role', 'groups', 'created']
         # form_columns = ('name', 'email', 'password', 'admin', 'role', 'groups')
         column_list = ['id', 'name', 'email', 'read', 'write', 'admin', 'groups', 'favorites', 'created']

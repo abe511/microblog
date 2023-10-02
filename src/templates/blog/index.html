@@ -3,11 +3,17 @@
 {% block header %}
   <h1>{% block title %}Posts{% endblock %}</h1>
   {% if g.user %}
-      <!-- {% for post in posts %}
-        {{ post.title }}
-      {% endfor %} -->
+      {% for post in posts %}
+      <!-- {{ post.title|truncate(10) }} -->
+      <!-- {{ post }} -->
+      {% endfor %}
       {{ posts | pprint }}
-    <a class="action" href="{{ url_for('blog.create') }}">New</a>
+      <a class="action" href="{{ url_for('blog.create') }}">New</a>
+      {% if request.path == "/favorites/" %}
+        <a class="action" href="{{ url_for('blog.index') }}">All</a>
+      {% else %}
+        <a class="action" href="{{ url_for('blog.favorites') }}">Favorites</a>
+      {% endif %}
   {% endif %}
 {% endblock %}
 
@@ -23,6 +29,13 @@
           <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
           <a class="action" href="{{ url_for('blog.delete', id=post['id']) }}">Delete</a>
         {% endif %}
+        {% if g.user and not g.user['id'] == post['user_id'] %}
+          {% if post in favorites %}
+            <button type="button" class="like-btn btn btn-outline-primary btn-sm active" data-post-id="{{ post.id }}" data-bs-toggle="button" autocomplete="off" aria-pressed="true">🌟</button>
+          {% else %}    
+            <button type="button" class="like-btn btn btn-outline-primary btn-sm" data-post-id="{{ post.id }}" data-bs-toggle="button" autocomplete="off">⭐</button>
+          {% endif %}
+        {% endif %}
       </header>
       <p class="body">{{ post['body'] }}</p>
     </article>
@@ -30,4 +43,24 @@
       <hr>
     {% endif %}
   {% endfor %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const likeButtons = document.querySelectorAll(".like-btn");
+        likeButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const postId = this.getAttribute("data-post-id");
+                fetch(`/like_post/${postId}`, { method: "POST" })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message === "Liked") {
+                            button.textContent = "🌟"
+                        } else {
+                            button.textContent = "⭐"
+                        }
+                    });
+            });
+        });
+    });
+  </script>
+
 {% endblock %}
