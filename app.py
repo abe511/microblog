@@ -10,6 +10,8 @@ from flask_admin import Admin
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView
 
+from flask_jwt_extended import JWTManager
+
 from flask_bootstrap import Bootstrap5
 
 from flask_wtf import FlaskForm
@@ -31,6 +33,7 @@ def create_app(test_config=None):
     ] = "postgresql://postgres:postgres@localhost:5433/flask_db"
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
     app.config["SECRET_KEY"] = "your_secret_key_here"
+    app.config["JWT_SECRET_KEY"] = "secret"
 
     app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "flatly"
     # app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "slate"
@@ -40,6 +43,8 @@ def create_app(test_config=None):
     app.register_blueprint(blog.bp)
     
     db.init_app(app)
+    
+    jwt = JWTManager(app)
 
     bootstrap = Bootstrap5(app)
     admin = Admin(app, name='microblog', template_mode='bootstrap3')
@@ -58,11 +63,6 @@ def create_app(test_config=None):
     except OSError:
         pass
     # **************
-    
-
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
 
 
     class UserForm(FlaskForm):

@@ -11,6 +11,8 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 from src.models.models import session_db, Post, User, Group, users_groups_association_table
 from src.auth import login_required
 
@@ -20,7 +22,10 @@ bp = Blueprint("blog", __name__)
 
 @bp.route("/")
 @bp.route("/favorites/", endpoint="favorites")
+# @jwt_required()
 def index():
+    # current_user = get_jwt_identity()
+    # print("current user:", current_user)
     favorites = []
     user_id = session.get("user")
     if user_id is None:
