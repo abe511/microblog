@@ -13,27 +13,36 @@ from werkzeug.exceptions import abort
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from src.models.models import session_db, Post, User, Group, users_groups_association_table
-from src.auth import login_required
+from src.models.models import session_db, Post, User
 
 
 bp = Blueprint("blog", __name__)
 
-
 @bp.route("/")
-@bp.route("/favorites/", endpoint="favorites")
-# @jwt_required()
 def index():
-    # current_user = get_jwt_identity()
-    # print("current user:", current_user)
-    favorites = []
     user_id = session.get("user")
+    if user_id is not None:
+        return redirect(url_for("blog.feed"))
+    
+    with session_db() as s:
+        posts = s.query(Post).order_by(Post.created.desc()).all()
+    return render_template("blog/index.html", posts=posts)
+
+
+@bp.route("/feed/")
+@bp.route("/favorites/", endpoint="favorites")
+@jwt_required()
+def feed():
+    user_id = get_jwt_identity()
+    session["user"] = user_id
+    favorites = []
     if user_id is None:
-        with session_db() as s:
-            posts = s.query(Post).order_by(Post.created.desc()).all()
+        return redirect(url_for("blog.index"))
     else:
         with session_db() as s:
             user = s.query(User).get(user_id)
+            g.user = user
+            print("g user in feed:", g.user.id, g.user.posts)
             other_group_users = []
             for group in user.groups:
                 other_group_users.extend(group.users)
@@ -46,33 +55,36 @@ def index():
             posts = query.order_by(Post.created.desc()).all()
             favorites = user.favorites
     if request.path == "/favorites/":
-        return render_template("blog/index.html", posts=favorites, favorites=favorites)
-    return render_template("blog/index.html", posts=posts, favorites=favorites)
+        return render_template("blog/feed.html", posts=favorites, favorites=favorites)
+    print("current user:", user_id)
+    return render_template("blog/feed.html", posts=posts, favorites=favorites)
 
 
 @bp.route("/create", methods=("GET", "POST"))
-@login_required
+@jwt_required()
 def create():
+    user_id = get_jwt_identity()
+    with session_db() as s:
+        g.user = s.query(User).get(user_id)
     if request.method == "POST":
         title = request.form["title"]
         body = request.form["body"]
-        user_id = session.get("user")
-        print("user_id from BLOG", user_id)
-
         with session_db() as s:
             new_post = Post(title=title, body=body, user_id=user_id)
             s.add(new_post)
             s.commit()
-
             return redirect(url_for("blog.index"))
     return render_template("blog/create.html")
 
 
 def get_post(id, check_author=True):
+    user_id = session.get("user")
+    post = None
     with session_db() as s:
-        query = s.query(Post)
-        query = query.join(User, User.id == Post.user_id)
-        post = query.filter(Post.id == id).first()
+        g.user = s.query(User).get(user_id)
+        for user_post in g.user.posts:
+            if user_post.id == id:
+                post = user_post
 
         if post is None:
             abort(404, f"Post id {id} doesn't exist.")
@@ -84,7 +96,7 @@ def get_post(id, check_author=True):
 
 
 @bp.route("/<int:id>/update", methods=("GET", "POST"))
-@login_required
+@jwt_required()
 def update(id):
     post = get_post(id)
 
@@ -110,7 +122,7 @@ def update(id):
 
 
 @bp.route("/<int:id>/delete", methods=["GET", "POST"])
-@login_required
+@jwt_required()
 def delete(id):
     get_post(id)
     with session_db() as s:
@@ -120,8 +132,9 @@ def delete(id):
 
 
 @bp.route("/like_post/<int:post_id>", methods=["POST"])
+@jwt_required()
 def like_post(post_id):
-    user_id = session.get("user")
+    user_id = get_jwt_identity()
 
     with session_db() as s:
         user = s.query(User).get(user_id)

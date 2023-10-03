@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Posts{% endblock %}</h1>
+  {% if g.user %}
+      <h3>{{ g.user }}</h3>
+      {% for post in posts %}
+      <!-- {{ post.title|truncate(10) }} -->
+      <!-- {{ post }} -->
+      {% endfor %}
+      <!-- {{ posts | pprint }} -->
+      <a class="action" href="{{ url_for('blog.create') }}">New</a>
+      {% if request.path == "/favorites/" %}
+        <a class="action" href="{{ url_for('blog.feed') }}">All</a>
+      {% else %}
+        <a class="action" href="{{ url_for('blog.favorites') }}">Favorites</a>
+      {% endif %}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% for post in posts %}
+    <article class="post">
+      <header>
+        <div>
+          <h1>{{ post['title'] }}</h1>
+          <div class="about">by {{ post['user_id'] }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
+        </div>
+        {% if g.user['id'] == post['user_id'] %}
+          <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
+          <a class="action" href="{{ url_for('blog.delete', id=post['id']) }}">Delete</a>
+        {% endif %}
+        {% if g.user and not g.user['id'] == post['user_id'] %}
+          {% if post in favorites %}
+            <button type="button" class="like-btn btn btn-outline-primary btn-sm active" data-post-id="{{ post.id }}" data-bs-toggle="button" autocomplete="off" aria-pressed="true">🌟</button>
+          {% else %}    
+            <button type="button" class="like-btn btn btn-outline-primary btn-sm" data-post-id="{{ post.id }}" data-bs-toggle="button" autocomplete="off">⭐</button>
+          {% endif %}
+        {% endif %}
+      </header>
+      <p class="body">{{ post['body'] }}</p>
+    </article>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const likeButtons = document.querySelectorAll(".like-btn");
+        likeButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                const postId = this.getAttribute("data-post-id");
+                fetch(`/like_post/${postId}`, { method: "POST" })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message === "Liked") {
+                            button.textContent = "🌟"
+                        } else {
+                            button.textContent = "⭐"
+                        }
+                    });
+            });
+        });
+    });
+
+    async function makeRequestWithJWT(path) {
+      console.log("path", path, "full:", `${window.location.origin}${path}`);
+      const options = {
+        method: 'post',
+        credentials: 'same-origin',
+        headers: {
+          'X-CSRF-TOKEN': getCookie('csrf_access_token'),
+        },
+      };
+      const response = await fetch(`${window.location.origin}${path}`, options);
+      const result = await response.json();
+      return result;
+    }
+
+  </script>
+
+{% endblock %}

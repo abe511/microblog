@@ -1,4 +1,5 @@
 import functools
+import datetime
 
 from flask import (
     Blueprint,
@@ -6,6 +7,7 @@ from flask import (
     g,
     redirect,
     render_template,
+    make_response,
     request,
     session,
     url_for,
@@ -13,10 +15,9 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_csrf_token
 
-from src.models.models import session_db, User, Post, Group
-
+from src.models.models import session_db, User, Group
 
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -24,6 +25,8 @@ bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @bp.route("/register", methods=("GET", "POST"))
 def register():
+    if session.get("user"):
+        return redirect(url_for("blog.feed"))
     with session_db() as s:
         groups = s.query(Group).all()
     if request.method == "POST":
@@ -46,7 +49,6 @@ def register():
                     flash("Choose a different email", category="warning")
                     return redirect(url_for("auth.register"))
             else:
-                
                 hashed_password = generate_password_hash(password)
                 new_user = User(name=username, email=email, password=hashed_password)
                 for group_id in selected_groups:
@@ -62,52 +64,42 @@ def register():
 
 @bp.route("/login", methods=("GET", "POST"))
 def login():
+    if session.get("user"):
+        return redirect(url_for("blog.feed"))
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         
         with session_db() as s:
-            username_exists = s.query(User).filter_by(name=username).first()
-            if username_exists is None:
+            user_exists = s.query(User).filter_by(name=username).first()
+            if user_exists is None:
                 flash("User is not registered", category="warning")
                 # return jsonify({"message": "User is not registered"}, 401)
                 return redirect(url_for("auth.login"))
             else:
-                user_pass = check_password_hash(username_exists.password, password)
+                user_pass = check_password_hash(user_exists.password, password)
                 if not user_pass:
                     flash("Wrong password", category="warning")
                     # return jsonify({"message": "Wrong password"})
                     return redirect(url_for("auth.login"))
                 else:
-                    session["user"] = username_exists.id
-                    token = create_access_token(identity=username)
-                    # return jsonify(access_token=token)
-                    return redirect(url_for("blog.index"))
+                    # session["user"] = user_exists.id
+                    response = make_response(redirect(url_for("blog.feed")))
+                    access_token = create_access_token(identity=user_exists.id)
+                    # csrf_token = get_csrf_token(access_token)
+                    # response.headers["X-CSRF-TOKEN"] = csrf_token
+                    # expires = datetime.datetime.now() + datetime.timedelta(minutes=120)
+                    # response.set_cookie("access_token", value=access_token, expires=expires, httponly=True)
+                    set_access_cookies(response, access_token)
+                    return response
+                    # return jsonify(access_token=access_token)
     return render_template("auth/login.html")
-
-
-@bp.before_app_request
-def load_logged_in_user():
-    user_id = session.get("user")
-    if user_id is None:
-        g.user = None
-    else:
-        with session_db() as s:
-            g.user = s.query(User).get(user_id)
 
 
 @bp.route("/logout")
 def logout():
+    response = jsonify({"msg": "logout successful"})
+    # response = redirect(url_for("blog.index"))
+    unset_jwt_cookies(response)
     session.clear()
     return redirect(url_for("blog.index"))
-
-
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for("auth.login"))
-
-        return view(**kwargs)
-
-    return wrapped_view

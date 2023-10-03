@@ -2,7 +2,8 @@ import os
 
 from flask import Flask
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, SelectField, DateField, SelectMultipleField
+from wtforms.validators import DataRequired, Length
 
 from src import auth, blog, db
 from src.models.models import User, Post, Group, session_db
@@ -15,8 +16,6 @@ from flask_jwt_extended import JWTManager
 from flask_bootstrap import Bootstrap5
 
 from flask_wtf import FlaskForm
-from wtforms import SelectField, DateField, SelectMultipleField, TimeField
-from wtforms.validators import DataRequired, Length
 
 
 def create_app(test_config=None):
@@ -34,9 +33,17 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
     app.config["SECRET_KEY"] = "your_secret_key_here"
     app.config["JWT_SECRET_KEY"] = "secret"
+    app.config["JWT_TOKEN_LOCATION"] = "cookies"
+
+    # app.config["SESSION_COOKIE_HTTPONLY"] = True
+
+    # app.config["JWT_COOKIE_SAMESITE"] = "None"
+    # In production, this should always be set to True
+    # app.config["JWT_COOKIE_SECURE"] = False
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = False
+
 
     app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "flatly"
-    # app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "slate"
     app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
 
     app.register_blueprint(auth.bp)
