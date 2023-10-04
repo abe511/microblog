@@ -1,22 +1,20 @@
 import os
+from dotenv import load_dotenv
 
 from flask import Flask
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, DateField, SelectMultipleField
 from wtforms.validators import DataRequired, Length
-
-from src import auth, blog, db
-from src.models.models import User, Post, Group, session_db
 from flask_admin import Admin
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView
-
 from flask_jwt_extended import JWTManager
-
 from flask_bootstrap import Bootstrap5
-
 from flask_wtf import FlaskForm
+from src import auth, blog, db
+from src.models.models import User, Post, Group, session_db
 
+load_dotenv()
 
 def create_app(test_config=None):
     # create and configure the app
@@ -26,13 +24,11 @@ def create_app(test_config=None):
         template_folder="src/templates",
         static_folder="src/static",
     )
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    # ] = "postgresql://postgres:password@localhost:5434/flask_db"
-    ] = "postgresql://postgres:postgres@localhost:5433/flask_db"
+    app.config["BASE_URL"] = os.environ.get("BASE_URL")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URI")
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
-    app.config["SECRET_KEY"] = "your_secret_key_here"
-    app.config["JWT_SECRET_KEY"] = "secret"
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+    app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
     app.config["JWT_TOKEN_LOCATION"] = "cookies"
 
     # app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -41,10 +37,10 @@ def create_app(test_config=None):
     # In production, this should always be set to True
     # app.config["JWT_COOKIE_SECURE"] = False
     app.config["JWT_COOKIE_CSRF_PROTECT"] = False
-
+    # app.config["JWT_CSRF_CHECK_FORM"] = True
 
     app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "flatly"
-    app.config['FLASK_ADMIN_SWATCH'] = 'flatly'
+    app.config["FLASK_ADMIN_SWATCH"] = "flatly"
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(blog.bp)
@@ -67,10 +63,9 @@ def create_app(test_config=None):
     # **************
     try:
         os.makedirs(app.instance_path)
-    except OSError:
-        pass
+    except OSError as e:
+        print(e)
     # **************
-
 
     class UserForm(FlaskForm):
         name = StringField('Name', [Length(min=2, max=128), DataRequired()])
