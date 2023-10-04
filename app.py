@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+from config import app_config
 
 from flask import Flask
 from flask_wtf import FlaskForm
@@ -14,7 +14,6 @@ from flask_wtf import FlaskForm
 from src import auth, blog, db
 from src.models.models import User, Post, Group, session_db
 
-load_dotenv()
 
 def create_app(test_config=None):
     # create and configure the app
@@ -24,23 +23,20 @@ def create_app(test_config=None):
         template_folder="src/templates",
         static_folder="src/static",
     )
-    app.config["BASE_URL"] = os.environ.get("BASE_URL")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URI")
+
+    app.config.from_object(app_config)
+    
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
-    app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
     app.config["JWT_TOKEN_LOCATION"] = "cookies"
 
     # app.config["SESSION_COOKIE_HTTPONLY"] = True
 
     # app.config["JWT_COOKIE_SAMESITE"] = "None"
-    # In production, this should always be set to True
+    
+    # In production, these should always be set to True
     # app.config["JWT_COOKIE_SECURE"] = False
     app.config["JWT_COOKIE_CSRF_PROTECT"] = False
     # app.config["JWT_CSRF_CHECK_FORM"] = True
-
-    app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "flatly"
-    app.config["FLASK_ADMIN_SWATCH"] = "flatly"
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(blog.bp)
@@ -63,8 +59,8 @@ def create_app(test_config=None):
     # **************
     try:
         os.makedirs(app.instance_path)
-    except OSError as e:
-        print(e)
+    except OSError:
+        pass
     # **************
 
     class UserForm(FlaskForm):

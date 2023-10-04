@@ -11,7 +11,7 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_csrf_token
 
 from src.models.models import session_db, Post, User
 
@@ -36,13 +36,13 @@ def feed():
     user_id = get_jwt_identity()
     session["user"] = user_id
     favorites = []
+    print("feed user id:", user_id)
     if user_id is None:
         return redirect(url_for("blog.index"))
     else:
         with session_db() as s:
             user = s.query(User).get(user_id)
             g.user = user
-            print("g user in feed:", g.user.id, g.user.posts)
             other_group_users = []
             for group in user.groups:
                 other_group_users.extend(group.users)
@@ -56,13 +56,14 @@ def feed():
             favorites = user.favorites
     if request.path == "/favorites/":
         return render_template("blog/feed.html", posts=favorites, favorites=favorites)
-    print("current user:", user_id)
     return render_template("blog/feed.html", posts=posts, favorites=favorites)
 
 
 @bp.route("/create", methods=("GET", "POST"))
 @jwt_required()
 def create():
+    # encoded = request.cookies.get("access_token")
+    # csrf_token = get_csrf_token(encoded)
     user_id = get_jwt_identity()
     with session_db() as s:
         g.user = s.query(User).get(user_id)
@@ -75,6 +76,7 @@ def create():
             s.commit()
             return redirect(url_for("blog.index"))
     return render_template("blog/create.html")
+    # return render_template("blog/create.html", csrf_token=csrf_token)
 
 
 def get_post(id, check_author=True):
