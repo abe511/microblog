@@ -11,7 +11,6 @@ from src.models.models import Group, Post, User
 
 
 def create_app(test_config=None):
-    # create and configure the app
     app = Flask(
         __name__,
         instance_relative_config=True,
@@ -28,13 +27,7 @@ def create_app(test_config=None):
 
     app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
     app.config["JWT_TOKEN_LOCATION"] = "cookies"
-    # app.config["SESSION_COOKIE_HTTPONLY"] = True
-    # app.config["JWT_COOKIE_SAMESITE"] = "None"
-    
-    # In production, these should always be set to True
-    # app.config["JWT_COOKIE_SECURE"] = False
     app.config["JWT_COOKIE_CSRF_PROTECT"] = False
-    # app.config["JWT_CSRF_CHECK_FORM"] = True
 
     alembic = Alembic()
     alembic.init_app(app)
@@ -63,8 +56,6 @@ def create_app(test_config=None):
     admin.add_view(PostModelView(Post, db.session))
     admin.add_view(UserModelView(User, db.session))
     admin.add_view(GroupModelView(Group, db.session))
-    # admin.add_view(ModelView(User, db.session))
-    # admin.add_view(ModelView(Group, db.session))
 
     return app
 
