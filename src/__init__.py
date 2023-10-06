@@ -1,38 +1,70 @@
 import os
-
+from config import app_config
 from flask import Flask
+from flask_admin import Admin
 from flask_alembic import Alembic
-from . import db, auth, blog
+from flask_bootstrap import Bootstrap5
+from flask_jwt_extended import JWTManager
+from src import auth, blog, db
+from src.admin.views import GroupModelView, PostModelView, UserModelView
+from src.models.models import Group, Post, User
 
 
 def create_app(test_config=None):
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
-
-    alembic = Alembic()
-    alembic.init_app(app)
-
-    app.config.from_mapping(
-        SECRET_KEY="dev",
-        DATABASE=os.path.join(app.instance_path, "src.sqlite"),
+    app = Flask(
+        __name__,
+        instance_relative_config=True,
+        template_folder="templates",
+        static_folder="static",
     )
 
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile("config.py", silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
-
-    # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
 
+    app.config.from_object(app_config)
+
+    app.config["SQLALCHEMY_SESSION_OPTIONS"] = {"expire_on_commit": False}
+    app.config["JWT_TOKEN_LOCATION"] = "cookies"
+    # app.config["SESSION_COOKIE_HTTPONLY"] = True
+    # app.config["JWT_COOKIE_SAMESITE"] = "None"
+    
+    # In production, these should always be set to True
+    # app.config["JWT_COOKIE_SECURE"] = False
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = False
+    # app.config["JWT_CSRF_CHECK_FORM"] = True
+
+    alembic = Alembic()
+    alembic.init_app(app)
+
+    # from db module run custom init_app function
     db.init_app(app)
+    
+    JWTManager(app)
+
+    Bootstrap5(app)
+    
     app.register_blueprint(auth.bp)
     app.register_blueprint(blog.bp)
-    app.add_url_rule("/", endpoint="index")
+    
+    # create all tables and admin user on first run
+    with app.app_context():
+        db.db.create_all()
+        admin_exists = db.session.query(User).get(1)
+        if admin_exists is None:  
+            user = User(name="admin", email="admin@server.net", password="admin")
+            user.admin = True
+            db.session.add(user)
+            db.session.commit()
+    
+    admin = Admin(app, name='microblog', template_mode='bootstrap3')
+    admin.add_view(PostModelView(Post, db.session))
+    admin.add_view(UserModelView(User, db.session))
+    admin.add_view(GroupModelView(Group, db.session))
+    # admin.add_view(ModelView(User, db.session))
+    # admin.add_view(ModelView(Group, db.session))
 
     return app
+

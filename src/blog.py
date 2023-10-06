@@ -36,7 +36,6 @@ def feed():
     user_id = get_jwt_identity()
     session["user"] = user_id
     favorites = []
-    print("feed user id:", user_id)
     if user_id is None:
         return redirect(url_for("blog.index"))
     else:

@@ -84,8 +84,9 @@ def login():
                 # return jsonify({"message": "User is not registered"}, 401)
                 return redirect(url_for("auth.login"))
             else:
-                user_pass = check_password_hash(user_exists.password, password)
-                if not user_pass:
+                password_match = check_password_hash(user_exists.password, password)
+                if not password_match:
+                    
                     flash("Wrong password", category="warning")
                     # return jsonify({"message": "Wrong password"})
                     return redirect(url_for("auth.login"))
@@ -105,7 +106,7 @@ def login():
                     set_refresh_cookies(response, refresh_token)
                     # csrf_token = get_csrf_token(access_token)
                     # response.headers["X-CSRF-TOKEN"] = csrf_token
-                    set_access_cookies(response, access_token)
+                    set_access_cookies(response, access_token)                    
                     return response
                     # return jsonify(access_token=access_token)
     return render_template("auth/login.html")
