@@ -32,7 +32,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), unique=True, nullable=False)
     email = db.Column(db.String(128), unique=True, nullable=False)  
-    password = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(256), nullable=False)
     groups = db.relationship("Group", secondary=users_groups_association_table, back_populates="users")
     posts = db.relationship("Post", back_populates="user")
     read = db.Column(db.Boolean, default=True)

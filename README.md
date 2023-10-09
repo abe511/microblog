@@ -5,7 +5,7 @@
 
 * Python 3.10
 
-* Postgres running locally on port 5433 (modify in `.env` file)
+* Postgres running locally on port 5432 (modify in `.env` file)
 
 ---
 
