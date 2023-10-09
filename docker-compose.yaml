@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:alpine
+    container_name: flask_blog_db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flask_db
+    env_file:
+      - .env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    env_file:
+      - .env
+    image : flask_blog:latest
+    build:
+      dockerfile:
+        ./Dockerfile
+    container_name: flask_blog_backend
+    environment:
+      DB_HOST: db
+      DATABASE_URI: ${DB_SERVER}${DB_USERNAME}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}
+      DEV_DATABASE_URI: ${DB_SERVER}${DB_USERNAME}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}
+      FLASK_APP: app.py
+      FLASK_RUN_HOST: 0.0.0.0
+    ports:
+      - 8000:5000
+    depends_on: 
+      - db
+volumes:
+  db-data: {}

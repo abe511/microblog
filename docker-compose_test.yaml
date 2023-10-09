@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+
+  backend:
+    env_file:
+      - .env
+    image : flask_blog:latest
+    build:
+      dockerfile:
+        ./Dockerfile
+    container_name: flask_blog_backend
+    environment:
+      DB_HOST: db
+      DATABASE_URI: "sqlite:///:memory:"
+      FLASK_ENV: test
+      FLASK_APP: app.py
+      FLASK_RUN_HOST: 0.0.0.0
+    ports:
+      - 8000:5000
+    depends_on: 
+      - db
+volumes:
+  db-data: {}
