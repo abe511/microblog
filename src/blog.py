@@ -35,6 +35,7 @@ def index():
 def feed():
     user_id = get_jwt_identity()
     session["user"] = user_id
+    posts = []
     favorites = []
     if user_id is None:
         return redirect(url_for("blog.index"))
@@ -42,17 +43,20 @@ def feed():
         with session_db() as s:
             user = s.query(User).get(user_id)
             g.user = user
-            other_group_users = []
-            for group in user.groups:
-                other_group_users.extend(group.users)
-            
-            user_ids = []
-            for group_user in other_group_users:
-                user_ids.append(group_user.id)
-
-            query = s.query(Post).join(Post.user).filter(User.id.in_(user_ids))
-            posts = query.order_by(Post.created.desc()).all()
             favorites = user.favorites
+            if not user.groups and user.posts:
+                posts.extend(reversed(user.posts))
+            else:
+                users_from_groups = []
+                for group in user.groups:
+                    users_from_groups.extend(group.users)
+                
+                user_ids = []
+                for group_user in users_from_groups:
+                    user_ids.append(group_user.id)
+
+                query = s.query(Post).join(Post.user).filter(User.id.in_(user_ids))
+                posts = query.order_by(Post.created.desc()).all()
     if request.path == "/favorites/":
         return render_template("blog/feed.html", posts=favorites, favorites=favorites)
     return render_template("blog/feed.html", posts=posts, favorites=favorites)
