@@ -36,7 +36,7 @@ in a browser open
 >http://127.0.0.1:8000/
 
 
-for admin panel
+for admin dashboard
 
 >http://127.0.0.1:8000/admin
 
