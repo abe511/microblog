@@ -1,11 +1,13 @@
 ## a python blog app
 
+> Checkout this [**demo**](https://microblog-fizz.onrender.com/) (deployed from `deployment` branch, runs on Gunicorn)
+
 
 #### Requirements:
 
 * Python 3.10 or greater
 
-* Postgres running locally on port 5432 (modify in `.env` file)
+* Postgres running locally on port 5432 (modify `.env` file)
 
 * Docker (for containerized version)
 
@@ -15,7 +17,7 @@
 
 open a terminal and cd to the project root dir:
 
-for MacOS/Linux run:
+on MacOS/Linux run:
 
 ```
 make
