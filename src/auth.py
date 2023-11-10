@@ -1,4 +1,3 @@
-import functools
 import datetime
 
 from flask import (
@@ -123,19 +122,20 @@ def logout():
 # @jwt.unauthorized_loader
 # def unauthorized_callback(callback):
 #     # No auth header
-#     # return redirect(app.config['BASE_URL'] + '/signup', 302)
-#     return redirect(BASE_URL + '/signup', 302)
+#     return redirect(app.config["BASE_URL"] + '/signup', 302)
+#     # return redirect(BASE_URL + '/signup', 302)
 
 # @jwt.invalid_token_loader
 # def invalid_token_callback(callback):
 #     # Invalid Fresh/Non-Fresh Access token in auth header
-#     resp = make_response(redirect(app.config['BASE_URL'] + '/signup'))
+#     resp = make_response(redirect(app.config["BASE_URL"] + '/signup'))
 #     unset_jwt_cookies(resp)
 #     return resp, 302
+
 
 # @jwt.expired_token_loader
 # def expired_token_callback(callback):
 #     # Expired auth header
-#     resp = make_response(redirect(app.config['BASE_URL'] + '/token/refresh'))
+#     resp = make_response(redirect(app.config["BASE_URL"] + '/token/refresh'))
 #     unset_access_cookies(resp)
 #     return resp, 302
