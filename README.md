@@ -1,6 +1,6 @@
 ## a python blog app
 
-> Checkout [**this demo**](https://microblog-fizz.onrender.com/) 
+> Check out [**this demo**](https://microblog-fizz.onrender.com/) 
 
 * *deployed from `deployment` branch, runs on Gunicorn*
 
