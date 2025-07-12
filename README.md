@@ -1,9 +1,10 @@
 ## a python blog app
 
-> Check out [**this demo**](https://microblog-fizz.onrender.com/) 
+> Check out [**this demo**](https://microblog-fizz.onrender.com/)  
 
-* *deployed from `deployment` branch, runs on Gunicorn*
+* *deployed from `deployment` branch, runs on Gunicorn*  
 
+> [**admin dashboard**](https://microblog-fizz.onrender.com/admin)  
 
 #### Requirements:
 
