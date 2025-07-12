@@ -2,7 +2,7 @@ alembic==1.16.4
 Bootstrap_Flask==2.3.0
 Flask==2.3.2
 Flask_Admin==1.6.1
-Flask_Alembic==3.1.1
+Flask_Alembic==2.0.1
 Flask_Bootstrap==3.3.7.1
 Flask_JWT_Extended==4.5.2
 Flask_Migrate==4.0.4
@@ -12,6 +12,6 @@ pytest==7.4.2
 python-dotenv==1.0.0
 SQLAlchemy==2.0.41
 Werkzeug==3.0.0
-WTForms==3.0.1
+WTForms==3.2.1
 psycopg2-binary==2.9.10
 gunicorn==23.0.0
